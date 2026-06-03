@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Titanomachia.vcxproj" Id="b4643151-cd30-44e2-8902-7125822cd02e" />
+</Solution>
