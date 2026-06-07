@@ -34,30 +34,29 @@
 
 게임의 메인 루프와 인게임 물리 엔진 루프가 맞물려 돌아가는 전체적인 프로그램 흐름도입니다.
 
-```mermaid
 graph TD
-    A([프로그램 시작 main]) --> B[난수 초기화 및 화면 세팅]
+    A([프로그램 시작 main]) --> B[난수 초기화 및 콘솔 세팅]
     
-    subgraph Main Loop [메인 메뉴 렌더링 루프]
-        B --> C[타이틀 화면 출력]
-        C -->|2번 입력| D[도움말 및 조작법 출력]
+    subgraph Main_Loop [메인 메뉴 루프]
+        B --> C{타이틀 화면 show_title}
+        C -->|2. 게임 설명| D[조작법 및 기믹 안내 show_help]
         D --> C
-        C -->|3번 입력| E([프로그램 종료 exit])
-        C -->|1번 입력| F[난이도 선택]
+        C -->|3. 게임 종료| E([프로그램 완전 종료 exit])
+        C -->|1. 게임 시작| F[난이도 선택 show_difficulty]
     end
 
-    F --> G[게임 인게임 데이터 초기화]
+    F --> G[인게임 데이터 초기화 init_game]
 
-    subgraph Game Engine Loop [초당 33프레임 인게임 루프]
+    subgraph Game_Engine_Loop [인게임 엔진 루프 - 초당 약 33프레임]
         G --> H((프레임 시작))
-        H --> I[1. 사용자 입력 처리 handle_input]
-        I --> J[2. 물리/패턴 연산 update_logic]
-        J --> K[3. 2차원 배열 도화지 렌더링 build_frame]
-        K --> L[4. 콘솔 화면 그래픽 출력 draw_frame]
+        H --> I[1. 입력 처리 handle_input]
+        I --> J[2. 물리/페이즈 연산 update_logic]
+        J --> K[3. 프레임 버퍼 구성 build_frame]
+        K --> L[4. 콘솔 렌더링 draw_frame]
         
-        L --> M{승패 조건 검사}
+        L --> M{승패 판정}
         M -->|플레이어 체력 0| N[게임 오버 연출]
-        M -->|보스 체력 0| O[클리어 연출]
+        M -->|보스 체력 0| O[보스 토벌 클리어 연출]
         M -->|전투 진행 중| P[30ms 대기 Sleep]
         P --> H
     end
