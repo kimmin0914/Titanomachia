@@ -64,4 +64,3 @@ graph TD
 
     N -->|아무 키나 입력| C
     O -->|아무 키나 입력| C
-```mermaid
