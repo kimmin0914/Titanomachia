@@ -72,7 +72,7 @@ int wave_hole_c = 0; // 파동에서 플레이어가 피할 수 있는 구멍 �
 int tick_count = 0; // 게임 시작 후 프레임이 몇 번 지나갔는지 기록하는 시계
 
 int phase = 1; // 보스의 현재 패턴 단계 설정
-time_t ritual_end_time = 0; // 10초 타임어택 기믹이 끝나는 실제 현실 시계 시간 기록
+time_t ritual_end_time = 0; // 타임어택 기믹이 끝나는 실제 현실 시계 시간 기록
 int ritual_time_left = 0; // 화면에 출력할 남은 초 계산
 time_t stun_end_time = 0; // 보스 기절이 끝나는 실제 현실 시계 시간 기록
 time_t enrage_end_time = 0; // 광폭화 지진 연출이 끝나는 실제 현실 시계 시간 기록
@@ -268,7 +268,7 @@ void update_logic() {
     }
 
     // 단계별 특수 규칙 적용 영역
-    if (phase == 2) { // 60프로 소환 타임어택 진행 중일 경우
+    if (phase == 2) { // 소환 타임어택 진행 중일 경우
         ritual_time_left = ritual_end_time - time(NULL); // 예약된 종료 시간에서 현재 시간을 빼서 남은 초 계산
         int minions_alive = 0; // 살아있는 소환수 숫자 기억할 변수 생성
 
@@ -389,16 +389,21 @@ void update_logic() {
             }
         }
 
-        if (diff_level >= 2) { // 보통 난이도 이상부터 파동 공격 추가
+        // 보통 난이도 이상부터 추가되는 공간 파동 패턴 제어 로직
+        if (diff_level >= 2) {
             if (wave_active) { // 파동이 내려오는 중이면
-                if (tick_count % 2 == 0) wave_r++; // 2프레임마다 파동 아래로 1칸 이동
-                if (wave_r >= ROWS) wave_active = 0; // 화면 바닥 뚫고 나가면 파동 삭제
+                if (tick_count % 4 == 0) { // 파동 이동 속도 조절을 위해 4프레임마다 연산 실행
+                    wave_r++; // 파동을 아래로 1칸 이동시킴
+                    if (wave_r >= ROWS) wave_active = 0; // 화면 바닥을 뚫고 나가면 파동 삭제 처리함
 
-                // 파동 세로 위치와 플레이어 세로 위치가 똑같은데 플레이어가 구멍 범위 밖에 있으면 피격 판정
-                if (wave_r == player_r && (player_c < wave_hole_c || player_c > wave_hole_c + 6)) player_hp--;
+                    // 파동 세로 위치와 플레이어 세로 위치가 똑같은데 플레이어가 구멍 범위 밖에 있으면 피격 판정 수행
+                    if (wave_active && wave_r == player_r && (player_c < wave_hole_c || player_c > wave_hole_c + 6)) {
+                        player_hp--; // 플레이어 체력 1 삭감 처리
+                    }
+                }
             }
             else { // 파동 공격이 대기 중이면
-                wave_timer++; // 파동 시계 1 증가
+                wave_timer++; // 파동 재생성 타이머 1 증가
                 if (wave_timer >= wave_interval) { // 파동 쿨타임 꽉 찼으면
                     wave_timer = 0; wave_active = 1; wave_r = titan_height; // 파동 활성화 후 보스 바로 아래 세로줄로 위치 지정
                     wave_hole_c = rand() % (COLS - 8) + 1; // 플레이어가 생존할 수 있는 6칸 짜리 여백 구멍 가로 위치 무작위 설정
@@ -440,7 +445,7 @@ void build_frame() {
 
     for (int r = 0; r < ROWS; r++) { // 세로줄 전체 순회
         for (int c = 0; c < COLS; c++) { // 가로줄 전체 순회
-            if (rand() % 50 == 0) { map[r][c] = '.'; color_map[r][c] = C_STAR; } // 50분의 1 확률로 배경 별빛 도장 찍기
+            if (rand() % 50 == 0) { map[r][c] = '.'; color_map[r][c] = C_STAR; } // 확률적으로 배경 별빛 도장 찍기
         }
     }
 
@@ -672,12 +677,12 @@ int run_game(void) {
 // C언어 프로그램 최초 시작 진입점
 int main(void) {
     srand((unsigned int)time(NULL)); // 난수 시작점 설정
-    system("mode con: cols=62 lines=32"); // 콘솔 게임 창 크기 강제 고정
+    system("mode con: cols=62 lines=32"); // 게임 창 크기 내 맘대로 고정시켜버림
 
-    while (1) { // 끄기 전까지 영원히 메인 화면으로 돌아가는 무한 반복
+    while (1) { // 끄기 전까지 메인 화면으로 돌아가는 무한 반복
         show_title(); // 대문 보여주기
         show_difficulty(); // 난이도 선택 메뉴 보여주기
-        run_game(); // 본격적인 게임 루프 함수 호출
+        run_game(); // 본격적인 게임 연산 함수 호출
     }
     return 0; // 프로그램 완전 종료
 }
